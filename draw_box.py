@@ -13,7 +13,7 @@ class DrawBox:
         self.letter.write(char, font=("Arial", 16, "bold"))
         self.letter.hideturtle()
 
-    def draw_circle(self, color, x, y, radius=None, fill=False, outline_thickness=1):
+    def draw_circle(self, color, x, y, radius=None, fill=False, outline_thickness=3):
         # if radius is not provid (None), it calculates the radius based on box size.
         if radius is None:
             radius = self.box_size // 2 - 5
@@ -45,4 +45,4 @@ class DrawBox:
         if letter is not None:
             self.draw_letter(letter[0], x + self.box_size * 0.35, y - self.box_size * 0.85)
             circle_color = letter[1]
-            self.draw_circle(circle_color, x + self.box_size * 0.5, y - self.box_size * 0.5, self.box_size // 2 - 2)
+            self.draw_circle(circle_color, x + self.box_size * 0.5, y - self.box_size * 0.5, 12)
