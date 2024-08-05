@@ -5,7 +5,7 @@ class Drone:
         self.box_size = box_size
         self.x_offset = x_offset
         self.y_offset = y_offset
-        self.maze_height = maze_height
+        self._maze_height = maze_height
         self.turtle = turtle.Turtle()
         self.turtle.fillcolor("red")
         self.turtle.setheading(90)
@@ -16,7 +16,7 @@ class Drone:
     def goto_position(self, pos):
         x, y = pos
         # Correct the y-coordinate by subtracting from maze height
-        corrected_y = self.maze_height - y
+        corrected_y = self._maze_height - y
         self.turtle.goto(x * self.box_size - self.x_offset + (0.5 * self.box_size),
                          (corrected_y * self.box_size - (0.5 * self.box_size)) - self.y_offset)
 

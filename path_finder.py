@@ -1,12 +1,12 @@
 from collections import deque
 
-class PathFinder:
+class _PathFinder:
     def __init__(self, maze):
-        self.maze = maze
+        self._maze = maze
 
     def is_passable(self, x, y):
         # Check if a position in the maze is passable (not a wall).
-        return 0 <= x < len(self.maze.grid[0]) and 0 <= y < len(self.maze.grid) and self.maze.grid[y][x] != 'X'
+        return 0 <= x < len(self._maze.grid[0]) and 0 <= y < len(self._maze.grid) and self._maze.grid[y][x] != 'X'
 
     def bfs_shortest_path(self, start_pos):
         # Use Breadth-First Search (BFS) to find the shortest path from start_pos to the endpoint 'e'.
@@ -18,7 +18,7 @@ class PathFinder:
         while queue:
             x, y = queue.popleft()
 
-            if self.maze.grid[y][x] == 'e':  # If we've reached the endpoint
+            if self._maze.grid[y][x] == 'e':  # If we've reached the endpoint
                 path = []
                 while (x, y) != (start_x, start_y):
                     path.append((x, y))

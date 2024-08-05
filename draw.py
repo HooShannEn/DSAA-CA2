@@ -1,6 +1,6 @@
 import turtle
 
-class Draw:
+class _Draw:
     def __init__(self, box_size=30):
         self.box_size = box_size
         self.t = turtle.Turtle()

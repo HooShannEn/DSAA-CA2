@@ -1,7 +1,7 @@
 import turtle
 from filehandler import FileHandler
 from MazeSimulator import MazeSimulator
-from key_input import KeyInput
+from key_input import _KeyInput
 
 turtle.tracer(False)
 
@@ -16,7 +16,7 @@ maze_solver = MazeSimulator(maze_data)
 maze_solver.draw_maze()
 
 # Initialize KeyInput with the maze solver to manage key events
-key_input = KeyInput(maze_solver)
+key_input = _KeyInput(maze_solver)
 
 # Keep the turtle window open
 turtle.done()

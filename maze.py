@@ -1,4 +1,4 @@
-class Maze:
+class _Maze:
     def __init__(self, grid):
         self.grid = grid
         self.start_pos = self.find_position('s')
