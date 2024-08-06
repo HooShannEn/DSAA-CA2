@@ -1,8 +1,10 @@
 import turtle
+from trafficJam import UserInput
 
 class _KeyInput:
     def __init__(self, maze_solver):
         self._maze_solver = maze_solver
+        self.extra_feature = None
         self.setup_keys()
 
     def setup_keys(self):
@@ -38,4 +40,11 @@ class _KeyInput:
         # Additional keys for continue/pause functionality
         screen.onkey(self._maze_solver._continue_manual, "C")
         screen.onkey(self._maze_solver._continue_manual, "c")
+        
+       # for individual part
+        screen.onkey(self.call_extra_feature, 's')
+
+    def call_extra_feature(self):
+        screen = self._maze_solver.screen
+        self.extra_feature = UserInput(screen) #call extra feature with current screen
 
