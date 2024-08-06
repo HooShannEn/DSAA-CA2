@@ -12,9 +12,10 @@ class MazeSimulator:
         self._draw = _Draw(box_size)
         self.screen = turtle.Screen()
         self.screen.setup(width=800, height=800)
-        self.x_offset = (800 - len(self._maze.grid[0]) * box_size) / 3
-        self.y_offset = (800 - len(self._maze.grid) * box_size) / 6
-        
+        #changed offset
+        self.x_offset = (len(self._maze.grid[0]) *60 - len(self._maze.grid[0]) * box_size) / 2
+        self.y_offset = (len(self._maze.grid) *60- len(self._maze.grid) * box_size) / 2
+
         self.color_map = {
             'X': '#C6C4C5',
             '.': 'white',
