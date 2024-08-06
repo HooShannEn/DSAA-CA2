@@ -34,8 +34,55 @@ class MazeSimulator:
         self.path_cal = False
         self.count = 0
 
+        # zehua
+        # Initialize battery level
+        self.battery_level = 100
+        # Create separate turtle objects for status and battery text
+        self.status_turtle = turtle.Turtle()
+        self.status_turtle.hideturtle()
+        self.status_turtle.penup()
+        self.status_turtle.goto(0, 350)
+        self.battery_turtle = turtle.Turtle()
+        self.battery_turtle.hideturtle()
+        self.battery_turtle.penup()
+        self.battery_turtle.goto(0, 300)
+        start_pos = self._maze.get_start_position()
+        self.start_pos = start_pos
+
+
         # starting text
         self._draw.draw_text("DRONE STATUS = Manual Mode: Use arrow keys to navigate (press 'f' to calculate shortest path)")
+        # zehua
+        self._draw_battery_status()
+
+    # zehua
+    def _draw_battery_status(self, reached_return_point=False):
+        self.battery_turtle.clear()
+        self.battery_turtle.goto(0, 300)  # Position for battery status
+        battery_text = f"Battery: {self.battery_level}%"
+        if self.battery_level == 0:
+            current_x, current_y = self.drone.position
+            battery_text = f"Battery: 0% - Position ({current_x}, {current_y}) - Press 'r' to restart"
+        elif reached_return_point:
+            battery_text += " - Press 'r' to reset drone battery"
+        elif self.battery_level < 30:
+            battery_text += " - Low Battery! Returning to Start..."
+        self.battery_turtle.write(battery_text, align="center", font=("Arial", 12, "normal"))
+
+    def _draw_status_text(self, text):
+        self.status_turtle.clear()  # Clear only the status text
+        self.status_turtle.goto(0, 350)  # Position for status text
+        self.status_turtle.write(text, align="center", font=("Arial", 12, "normal"))
+
+    def _update_battery(self):
+        self.battery_level = max(0, self.battery_level - 1)
+        self._draw_battery_status()
+        # Only trigger the return if not already returning and battery is low
+        if self.battery_level < 30 and not self.following_path:
+            self._return_to_start()
+        elif self.battery_level == 0:
+            self._activate_reset_key  # Freeze all keys except reset battery
+            self.following_path = False  # Stop any automatic movement
 
 
     def _activate_continuekeys(self):
@@ -48,6 +95,8 @@ class MazeSimulator:
         self.following_path = False
         self._activate_allkeys()
         self._clear_path()
+        # zehua
+        self._draw_battery_status()  # Redraw battery status to ensure it's visible
 
     def _activate_allkeys(self):
         # Listen for key press to move drone
@@ -97,6 +146,13 @@ class MazeSimulator:
         self.screen.onkey(None, "R")
         self.screen.onkey(None, "r")
 
+    def _activate_reset_key(self):
+        self.screen.onkey(turtle.bye, 'q')
+        self.screen.onkey(turtle.bye, 'Q')
+        self.screen.onkey(self._reset, "R")
+        self.screen.onkey(self._reset, "r")
+
+
     def _recheck_path(self):
         if not self.paused:
             if self.path_cal and self.path_drawn:
@@ -129,7 +185,12 @@ class MazeSimulator:
             self.drone.update_position('up')
             self.drone.set_heading('up')
             turtle.update()
+            self._update_battery()  # zehua: Decrease battery level
             self._recheck_path()
+
+            # Check battery level and initiate return to start if necessary
+            if self.battery_level < 30:
+                self._return_to_start()
 
     def _move_down(self):
         x, y = self.drone.position
@@ -137,7 +198,11 @@ class MazeSimulator:
             self.drone.update_position('down')
             self.drone.set_heading('down')
             turtle.update()
+            self._update_battery()  # zehua: Decrease battery level
             self._recheck_path()
+            # Check battery level and initiate return to start if necessary
+            if self.battery_level < 30:
+                self._return_to_start()
 
     def _move_left(self):
         x, y = self.drone.position
@@ -145,7 +210,11 @@ class MazeSimulator:
             self.drone.update_position('left')
             self.drone.set_heading('left')
             turtle.update()
+            self._update_battery()  # zehua: Decrease battery level
             self._recheck_path()
+            # Check battery level and initiate return to start if necessary
+            if self.battery_level < 30:
+                self._return_to_start()
 
     def _move_right(self):
         x, y = self.drone.position
@@ -153,7 +222,11 @@ class MazeSimulator:
             self.drone.update_position('right')
             self.drone.set_heading('right')
             turtle.update()
+            self._update_battery()  # zehua: Decrease battery level
             self._recheck_path()
+            # Check battery level and initiate return to start if necessary
+            if self.battery_level < 30:
+                self._return_to_start()
 
     def _bfs_shortest_path(self):
         return self._path_finder.bfs_shortest_path(self.drone.position)
@@ -165,6 +238,48 @@ class MazeSimulator:
             self._draw.draw_shortest_path(self.shortest_path, self.box_size, self.x_offset, self.y_offset, len(self._maze.grid))
         else:
             print("No path found!")
+
+    # zehua
+    def _return_to_start(self):
+        # if not self.following_path:  # Ensure this is only triggered once
+            # print("AAAAAAA")
+            # Use the modified pathfinder to find the path back to the start position
+            self._clear_path()
+            self.shortest_path = self._path_finder.bfs_shortest_path(self.drone.position, self.start_pos)
+            if self.shortest_path:
+                self._deactivate_keys()  # Prevent user input during return
+                self.following_path = True
+                self.paused = False  # Make sure the drone is not paused
+                self._path_index = 0
+                self._follow_return_path()
+
+
+
+    def _follow_return_path(self):
+        if self.following_path and self._path_index < len(self.shortest_path):
+            x, y = self.shortest_path[self._path_index]
+            current_x, current_y = self.drone.position
+
+            if x > current_x:
+                self.drone.set_heading('right')
+            elif x < current_x:
+                self.drone.set_heading('left')
+            elif y > current_y:
+                self.drone.set_heading('down')
+            elif y < current_y:
+                self.drone.set_heading('up')
+
+            self.drone.penup()
+            self.drone.move_to((x, y))
+            self._path_index += 1
+            self._update_battery()  # Decrease battery level
+            turtle.update()
+            self.screen.ontimer(self._follow_return_path, 500)
+        else:
+            self.following_path = False
+            # self._activate_continuekeys()
+            self._activate_reset_key()
+            self._draw_battery_status(reached_return_point=True)
 
 
     def _calculate_and_display_path(self):
@@ -181,8 +296,13 @@ class MazeSimulator:
 
     def _follow_path(self):
         if self.shortest_path and not self.paused:
+            if self.battery_level < 30: 
+                self._return_to_start()
+                return
             self.following_path = True
-            if self.path_index < len(self.shortest_path):
+
+            # Interrupt path following if battery is low
+            if self.path_index < len(self.shortest_path): 
                 x, y = self.shortest_path[self.path_index]
                 current_x, current_y = self.drone.position  # Use drone's current position
 
@@ -200,6 +320,7 @@ class MazeSimulator:
                 # Move drone to the next position following the path
                 self.drone.move_to((x, y))
                 self.path_index += 1  # Move to the next step
+                self._update_battery() # zehua: Decrease battery level
 
                 turtle.update()
                 self.screen.ontimer(self._follow_path, 500)  # Move speed, each step takes 500 ms
@@ -248,13 +369,14 @@ class MazeSimulator:
         self._update_text("DRONE STATUS = Manual Mode: Use arrow keys to navigate (press 'f' to calculate shortest path)")
 
     def _draw_text(self, text):
-        self._text_turtle.clear()  # clean previous text
-        self._text_turtle.penup()
-        self._text_turtle.goto(0, 350)  # text position
-        self._text_turtle.write("COFFEE~GO~DRONE: Done by Shann En & Zehua DAAA/2A/01", align="center", font=("Arial", 16, "bold"))
-        self._text_turtle.goto(0, 320)
-        self._text_turtle.write(text, align="center", font=("Arial", 12, "normal"))
-        self._text_turtle.hideturtle()
+        self.status_turtle.clear()  # Clean previous text
+        self.status_turtle.penup()
+        self.status_turtle.goto(0, 350)  # Text position
+        self.status_turtle.write("COFFEE~GO~DRONE: Done by Shann En & Zehua DAAA/2A/01", align="center", font=("Arial", 16, "bold"))
+        self.status_turtle.goto(0, 320)
+        self.status_turtle.write(text, align="center", font=("Arial", 12, "normal"))
+        self.status_turtle.hideturtle()
+
 
     def _update_text(self, text):
         self._draw.draw_text(text)
@@ -262,5 +384,8 @@ class MazeSimulator:
     def _reset(self):
         self.drone.move_to(self._maze.get_start_position())
         self.drone.set_heading('up')
+        self.battery_level = 100  # Reset battery level
+        self._draw_battery_status()  # Update battery status display
+        self._activate_allkeys()  # Reactivate all keys
         turtle.update()
 
