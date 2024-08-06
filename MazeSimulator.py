@@ -12,7 +12,7 @@ class MazeSimulator:
         self._draw = _Draw(box_size)
         self.screen = turtle.Screen()
         self.screen.setup(width=800, height=800)
-        #changed offset
+        #changed offset up to triple
         self.x_offset = (len(self._maze.grid[0]) *60 - len(self._maze.grid[0]) * box_size) / 2
         self.y_offset = (len(self._maze.grid) *60- len(self._maze.grid) * box_size) / 2
 
