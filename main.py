@@ -76,6 +76,7 @@ from filehandler import FileHandler
 from MazeSimulator import MazeSimulator
 from key_input import _KeyInput
 from employeeSecure import EmployeeSecure
+turtle.tracer(False)
 
 def start_maze_simulation(maze_file):
     maze_data = FileHandler().check_maze_dimensions(maze_file)
